@@ -17,7 +17,7 @@ const rl = readline.createInterface({
 const MAX_PLAYERS = 4;
 const REAL_PLAYERS = [0];
 const NUMBERED_CARDS = ['S', 'B', 'C'];
-const NAMED_CARDS = ['N', 'S', 'E', 'W', 'Z', 'G'];
+const NAMED_CARDS = ['N', 'S', 'E', 'W', 'W', 'G', 'R'];
 const STARTING_HAND = 16;
 const WINNING_HANDS = [
   { // STANDARD WIN - 5 sets of 3 and 1 pair
