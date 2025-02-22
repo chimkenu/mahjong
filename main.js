@@ -1,12 +1,13 @@
 // MAHJONG GAME
-// index.js
+// main.js
 //
 // written by chimkenu
 // started 02/21/2025
 //
 // game logic for the entire mahjong game!
 
-const readline = require("node:readline");
+import { createRoot } from "react-dom/client";
+import * as readline from "node:readline";
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -29,8 +30,23 @@ const WINNING_HANDS = [
   }
 ];
 
-// GAME LOOP
+/*
+ * THE GAME
+ */
+pageSetup();
 runGame();
+/*
+ *
+ */
+
+// WEB-SETUP
+function pageSetup() {
+  document.body.innerHTML = `<div id = "app"></div>`;
+  const root = createRoot(document.getElementById("app"));
+  root.render(`<h1>Hello, world</h1>`);
+}
+
+// GAME LOOP
 async function runGame() {
   const game = setup();
   let playerIndex = 0;
