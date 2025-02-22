@@ -6,7 +6,6 @@
 //
 // game logic for the entire mahjong game!
 
-import { createRoot } from "react-dom/client";
 import * as readline from "node:readline";
 const rl = readline.createInterface({
   input: process.stdin,
@@ -30,23 +29,8 @@ const WINNING_HANDS = [
   }
 ];
 
-/*
- * THE GAME
- */
-pageSetup();
-runGame();
-/*
- *
- */
-
-// WEB-SETUP
-function pageSetup() {
-  document.body.innerHTML = `<div id = "app"></div>`;
-  const root = createRoot(document.getElementById("app"));
-  root.render(`<h1>Hello, world</h1>`);
-}
-
 // GAME LOOP
+runGame();
 async function runGame() {
   const game = setup();
   let playerIndex = 0;
