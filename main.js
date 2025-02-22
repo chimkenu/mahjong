@@ -8,11 +8,6 @@
 
 import "./style.css";
 import { resources } from "./src/Resources.js";
-import * as readline from "node:readline";
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
 
 // CONSTANTS
 const MAX_PLAYERS = 4;
@@ -41,7 +36,7 @@ const dwaw = () => {
     ctx.drawImage(background.image, 0, 0);
   }
 };
-dwaw();
+setInterval(() => dwaw(), 300);
 
 // GAME LOOP
 runGame();
@@ -85,7 +80,6 @@ async function runGame() {
   }
 
   console.log(`Player ${playerIndex + 1} won!`);
-  rl.close();
 }
 
 function sleep(ms) {
@@ -110,7 +104,7 @@ function setup() {
 }
 
 function shuffle() {
-  deck = [];
+  let deck = [];
   for (const c of NUMBERED_CARDS) {
     for (let i = 1; i <= 9; i++) {
       for (let j = 0; j < 4; j++) {
@@ -301,7 +295,7 @@ function setSubtract(A, B) {
 }
 
 function countTriplets(hand) {
-  counter = {};
+  let counter = {};
   for (const c of hand) {
     if (counter[c] == null) {
       counter[c] = 0;
@@ -318,7 +312,7 @@ function countTriplets(hand) {
 }
 
 function countSequences(hand) {
-  counter = {};
+  let counter = {};
   for (const c of hand) {
     if (!isNumbered(c)) {
       continue;
@@ -351,7 +345,7 @@ function countSequences(hand) {
 }
 
 function countPairs(hand) {
-  counter = {};
+  let counter = {};
   for (const c of hand) {
     if (counter[c] == null) {
       counter[c] = 0;
