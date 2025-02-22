@@ -6,6 +6,8 @@
 //
 // game logic for the entire mahjong game!
 
+import "./style.css";
+import { resources } from "./src/Resources.js";
 import * as readline from "node:readline";
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,6 +30,18 @@ const WINNING_HANDS = [
     pairs: 7
   }
 ];
+
+// CANVAS
+const canvas = document.querySelector("#game-canvas");
+const ctx = canvas.getContext("2d");
+
+const dwaw = () => {
+  const background = resources.images.background;
+  if (background.isLoaded) {
+    ctx.drawImage(background.image, 0, 0);
+  }
+};
+dwaw();
 
 // GAME LOOP
 runGame();
