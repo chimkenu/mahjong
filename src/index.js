@@ -144,7 +144,7 @@ function pong(game, discard, discarder) {
     }
   }
   return new Promise(resolve =>
-    rl.question("Who would like to pong? (type '0' to cancel)", player => {
+    rl.question("Who would like to pong? ", player => {
       player--; // this is because we are 0-indexed, so shift by 1
       if (player < 0) {
         console.log("silence...");
