@@ -2,7 +2,8 @@ class Resources {
   constructor() {
     // all images/sprites to load
     this.toLoad = {
-      background: "/tiles.png"
+      background: "/background.png",
+      tiles: "/tiles.png"
     }
 
     // 'bucket' - stores all the images in memory
@@ -10,13 +11,13 @@ class Resources {
 
     // actually load each image
     Object.keys(this.toLoad).forEach(key => {
-      const image = new Image();
-      image.src = this.toLoad[key];
+      const img = new Image();
+      img.src = this.toLoad[key];
       this.images[key] = {
-        images: image,
+        image: img,
         isLoaded: false
       }
-      image.onload = () => {
+      img.onload = () => {
         this.images[key].isLoaded = true;
       }
     });
