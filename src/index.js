@@ -41,16 +41,17 @@ async function runGame() {
     // fake thinking if its not a real player
     if (!REAL_PLAYERS.includes(playerIndex)) {
       console.log(`player ${playerIndex + 1} is thinking...`);
-      sleep(2000);
+      await sleep(2000);
     }
 
     let currentHand = game.players[playerIndex];
-    console.log(`currentHand: ${currentHand}`);
+    currentHand.sort();
+    console.log(`hand: ${currentHand}`);
     if (checkWin(currentHand)) {
       break;
     }
 
-    let discard = decide(game, playerIndex);
+    let discard = await decide(game, playerIndex);
     // remove discard from player
     currentHand = setSubtract(currentHand, [discard]);
     console.log(`PLAYER ${playerIndex + 1} DISCARDED: ${discard}`);
@@ -76,7 +77,6 @@ async function runGame() {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
 
 // GAME FUNCTIONS
 function setup() {
@@ -125,12 +125,23 @@ function draw(game, player) {
     game.players[player] = [];
   }
   game.players[player].push(game.deck.pop());
+  console.log(`drew a ${game.players[player].at(-1)}`);
 }
 
 function decide(game, player) {
   let hand = game.players[player];
-  let decision = hand[0];
-  return decision;
+  if (REAL_PLAYERS.includes(player)) {
+    return new Promise(resolve =>
+      rl.question("What will you discard? ", discard => {
+        if (!hand.includes(discard)) {
+          console.log(`${discard} doesn't exist, dumbass. i'm gonna pick for you.`);
+          resolve(hand[0]);
+        }
+        resolve(discard);
+      })
+    );
+  }
+  return hand[0];
 }
 
 function pong(game, discard, discarder) {
@@ -143,6 +154,12 @@ function pong(game, discard, discarder) {
       pongers.push(i);
     }
   }
+
+  console.log(`pongers: ${pongers}`);
+  if (pongers.length < 1) {
+    return;
+  }
+
   return new Promise(resolve =>
     rl.question("Who would like to pong? ", player => {
       player--; // this is because we are 0-indexed, so shift by 1
@@ -151,18 +168,18 @@ function pong(game, discard, discarder) {
         resolve(-1);
         return;
       }
-      if (!pongers.includes(player)) {
-        console.log(`silly player ${player}, you can't pong that!`);
+      if (!pongers.includes(Number(player))) {
+        console.log(`silly player ${player + 1}, you can't pong that!`);
         resolve(-1);
         return;
       }
-      console.log(`PLAYER ${player} PONGED ${discard}!`);
+      console.log(`PLAYER ${player + 1} PONGED ${discard}!`);
       resolve(player);
     })
   );
 }
 
-function isAllowedToPong(playerHand, discard) {
+function isAllowedToPong(playerHand, discard, victimIndex, pongerIndex) {
   let newHand = Array.from(playerHand);
   newHand.push(discard);
   if (checkWin(newHand)) {
@@ -171,19 +188,24 @@ function isAllowedToPong(playerHand, discard) {
   }
 
   // check if playerHand has pair of the discard, return "pong!"
-  for (const pair in countPairs(playerHand)) {
+  for (const pair of countPairs(playerHand)) {
     if (pair[0] == discard) {
       // triplet
       return true;
     }
   }
-  // check if newHand has sequence with discard, return "chi" or something
-  for (const set in countSequences(newHand)) {
-    if (set.includes(discard)) {
-      // sequence
-      return true;
+
+  // check if newHand has sequence with discard, only if the ponger comes after
+  victimIndex = (victimIndex + 1) % 4;
+  if (pongerIndex == victimIndex) {
+    for (const set of countSequences(newHand)) {
+      if (set.includes(discard)) {
+        // sequence
+        return true;
+      }
     }
   }
+
   return false;
 }
 
