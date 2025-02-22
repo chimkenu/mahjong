@@ -6,6 +6,12 @@
 //
 // game logic for the entire mahjong game!
 
+const readline = require("node:readline");
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
 // CONSTANTS
 const MAX_PLAYERS = 4;
 const REAL_PLAYERS = [0];
@@ -30,15 +36,16 @@ async function runGame() {
   let playerIndex = 0;
   draw(game, playerIndex);
   while (true) {
-    console.log(`PLAYER ${playerIndex}'s TURN:`);
+    console.log(`PLAYER ${playerIndex + 1}'s TURN:`);
 
     // fake thinking if its not a real player
     if (!REAL_PLAYERS.includes(playerIndex)) {
-      console.log(`player ${playerIndex} is thinking...`);
+      console.log(`player ${playerIndex + 1} is thinking...`);
       sleep(2000);
     }
 
     let currentHand = game.players[playerIndex];
+    console.log(`currentHand: ${currentHand}`);
     if (checkWin(currentHand)) {
       break;
     }
@@ -46,11 +53,11 @@ async function runGame() {
     let discard = decide(game, playerIndex);
     // remove discard from player
     currentHand = setSubtract(currentHand, [discard]);
-    console.log(`PLAYER ${playerIndex} DISCARDED: ${discard}`);
+    console.log(`PLAYER ${playerIndex + 1} DISCARDED: ${discard}`);
 
     // let other players pong!
     // result is the new player index (if they pong'd)
-    let result = pong(game, discard, playerIndex);
+    let result = await pong(game, discard, playerIndex);
     if (result >= 0) {
       playerIndex = result;
       game.players[playerIndex].push(discard);
@@ -63,6 +70,7 @@ async function runGame() {
   }
 
   console.log(`Player ${playerIndex + 1} won!`);
+  rl.close();
 }
 
 function sleep(ms) {
@@ -126,14 +134,32 @@ function decide(game, player) {
 }
 
 function pong(game, discard, discarder) {
+  let pongers = [];
   for (let i = 0; i < MAX_PLAYERS; i++) {
     if (i == discarder) {
       continue;
     }
     if (isAllowedToPong(game.players[i], discard)) {
-
+      pongers.push(i);
     }
   }
+  return new Promise(resolve =>
+    rl.question("Who would like to pong? (type '0' to cancel)", player => {
+      player--; // this is because we are 0-indexed, so shift by 1
+      if (player < 0) {
+        console.log("silence...");
+        resolve(-1);
+        return;
+      }
+      if (!pongers.includes(player)) {
+        console.log(`silly player ${player}, you can't pong that!`);
+        resolve(-1);
+        return;
+      }
+      console.log(`PLAYER ${player} PONGED ${discard}!`);
+      resolve(player);
+    })
+  );
 }
 
 function isAllowedToPong(playerHand, discard) {
@@ -161,13 +187,12 @@ function isAllowedToPong(playerHand, discard) {
   return false;
 }
 
-// helper function
-function checkWin(hand) {
-  return checkWin(Array.from(hand), []);
-}
-
 // backtracking
 function checkWin(hand, accepted) {
+  if (accepted == null) {
+    accepted = [];
+  }
+
   // base case: hand is empty, assume its a win
   if (hand.length == 0) {
     return true;
