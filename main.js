@@ -8,6 +8,9 @@
 
 import "./style.css";
 import { resources } from "./src/Resources.js";
+import { Sprite } from "./src/Sprite.js";
+import { Vector2 } from "./src/Vector2.js";
+import { GameLoop } from "./src/GameLoop.js";
 
 // CONSTANTS
 const MAX_PLAYERS = 4;
@@ -29,17 +32,50 @@ const WINNING_HANDS = [
 // CANVAS
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
+const sprites = [];
 
-const dwaw = () => {
-  const background = resources.images.background;
-  if (background.isLoaded) {
-    ctx.drawImage(background.image, 0, 0);
+sprites.push(new Sprite({
+  resource: resources.images.background,
+  frameSize: new Vector2(320, 180),
+}));
+
+const tileSprite = new Sprite({
+  resource: resources.images.tiles,
+  frameSize: new Vector2(32, 32),
+  hFrames: 9,
+  vFrames: 23,
+  frame: 23
+});
+
+const render = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (const sprite of sprites) {
+    sprite.drawImage(ctx);
+  }
+
+  for (let i = 0; i < 16; i++) {
+    tileSprite.drawImage(ctx, i * 19, 96 + (i % 2));
   }
 };
-setInterval(() => dwaw(), 300);
+
+const update = () => {
+}
+
+const gameLoop = new GameLoop(update, render);
+gameLoop.start();
+
+// INTERACTIONS
+canvas.onmousedown = function (event) {
+  event.preventDefault();
+  event.clientX;
+  event.clientY;
+  console.log(event);
+}
+
+
 
 // GAME LOOP
-runGame();
 async function runGame() {
   const game = setup();
   let playerIndex = 0;
