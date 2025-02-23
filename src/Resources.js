@@ -3,7 +3,8 @@ class Resources {
     // all images/sprites to load
     this.toLoad = {
       background: "/background.png",
-      tiles: "/tiles.png"
+      tiles: "/tiles.png",
+      highlight: "/highlight.png"
     }
 
     // 'bucket' - stores all the images in memory
