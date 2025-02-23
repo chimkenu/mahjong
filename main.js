@@ -11,6 +11,7 @@ import { resources } from "./src/Resources.js";
 import { Sprite } from "./src/Sprite.js";
 import { Vector2 } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
+import { UP, DOWN, LEFT, RIGHT, Input } from "./src/Input.js";
 
 // CONSTANTS
 const MAX_PLAYERS = 4;
@@ -47,6 +48,18 @@ const tileSprite = new Sprite({
   frame: 23
 });
 
+const highlightSprite = new Sprite({
+  resource: resources.images.highlight,
+  frameSize: new Vector2(32, 32),
+  hFrames: 1,
+  vFrames: 4,
+  frame: 0
+});
+
+const input = new Input();
+let moveX = 0;
+let moveY = 0;
+
 const render = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -57,9 +70,30 @@ const render = () => {
   for (let i = 0; i < 16; i++) {
     tileSprite.drawImage(ctx, i * 19, 96 + (i % 2));
   }
+
+  highlightSprite.drawImage(ctx, moveX, moveY);
 };
 
+let count = 0;
 const update = () => {
+  if (count++ > 15) {
+    highlightSprite.frame = (highlightSprite.frame + 1) % 2;
+    count = 0;
+  }
+  switch (input.direction) {
+    case UP:
+      moveY--;
+      break;
+    case DOWN:
+      moveY++;
+      break;
+    case LEFT:
+      moveX--;
+      break;
+    case RIGHT:
+      moveX++;
+      break;
+  }
 }
 
 const gameLoop = new GameLoop(update, render);
