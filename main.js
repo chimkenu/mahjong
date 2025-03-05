@@ -8,16 +8,17 @@
 
 import "./style.css";
 import { resources } from "./src/Resources.js";
-import { Sprite } from "./src/Sprite.js";
+import { Sprite, Draggable } from "./src/Sprite.js";
 import { Vector2 } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
 import { UP, DOWN, LEFT, RIGHT, Input } from "./src/Input.js";
+import { Grid } from "./src/Grid.js";
 
 // CONSTANTS
 const MAX_PLAYERS = 4;
 const REAL_PLAYERS = [0];
-const NUMBERED_CARDS = ['S', 'B', 'C'];
-const NAMED_CARDS = ['N', 'S', 'E', 'W', 'W', 'G', 'R'];
+const NUMBERED_TILES = ['S', 'B', 'C'];
+const NAMED_TILES = ['N', 'S', 'E', 'W', 'W', 'G', 'R'];
 const STARTING_HAND = 16;
 const WINNING_HANDS = [
   { // STANDARD WIN - 5 sets of 3 and 1 pair
@@ -34,10 +35,15 @@ const WINNING_HANDS = [
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
 const sprites = [];
+const grid = new Grid({
+  xOffset: 1,
+  yOffset: 32 * 9,
+  cellSize: 19
+});
 
 sprites.push(new Sprite({
   resource: resources.images.background,
-  frameSize: new Vector2(320, 180),
+  frameSize: new Vector2(320, 320),
 }));
 
 const tileSprite = new Sprite({
@@ -48,17 +54,16 @@ const tileSprite = new Sprite({
   frame: 23
 });
 
-const highlightSprite = new Sprite({
+const highlight = new Sprite({
   resource: resources.images.highlight,
   frameSize: new Vector2(32, 32),
   hFrames: 1,
   vFrames: 4,
-  frame: 0
+  frame: 0,
+  position: new Vector2(grid.toGridCellX(0), grid.toGridCellY(0))
 });
 
 const input = new Input();
-let moveX = 0;
-let moveY = 0;
 
 const render = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -68,39 +73,59 @@ const render = () => {
   }
 
   for (let i = 0; i < 16; i++) {
-    tileSprite.drawImage(ctx, i * 19, 96 + (i % 2));
+    tileSprite.drawImage(ctx, 9 + i * 18, i % 2, 20);
+    tileSprite.drawImage(ctx, i % 2, 32 + i * 12, 17);
+    tileSprite.drawImage(ctx, 32 * 9 + (i % 2), 32 + i * 12, 26);
   }
 
-  highlightSprite.drawImage(ctx, moveX, moveY);
+  for (let i = 0; i < 16; i++) {
+    tileSprite.drawImage(ctx, 1 + i * 19, 32 * 9);
+  }
+
+  highlight.drawImage(ctx);
 };
+
+let highlightDestination = highlight.position.clone();
 
 let count = 0;
 const update = () => {
   if (count++ > 15) {
-    highlightSprite.frame = (highlightSprite.frame + 1) % 2;
+    highlight.frame = (highlight.frame + 1) % 2;
     count = 0;
   }
+  const distance = grid.lerpVectorTo(highlight.position, highlightDestination, 2.5);
+  if (distance == 0) {
+    tryMove();
+  }
+}
+
+function tryMove() {
+  let nextX = highlightDestination.x;
+  let nextY = highlightDestination.y;
   switch (input.direction) {
     case UP:
-      moveY--;
+      nextY -= grid.cellSize;
       break;
     case DOWN:
-      moveY++;
+      nextY += grid.cellSize;
       break;
     case LEFT:
-      moveX--;
+      nextX -= grid.cellSize;
       break;
     case RIGHT:
-      moveX++;
+      nextX += grid.cellSize;
       break;
   }
+  // TODO check if destination is valid
+  highlightDestination.x = nextX;
+  highlightDestination.y = nextY;
 }
 
 const gameLoop = new GameLoop(update, render);
 gameLoop.start();
 
 // INTERACTIONS
-canvas.onmousedown = function (event) {
+canvas.onmousedown = function(event) {
   event.preventDefault();
   event.clientX;
   event.clientY;
@@ -175,14 +200,14 @@ function setup() {
 
 function shuffle() {
   let deck = [];
-  for (const c of NUMBERED_CARDS) {
+  for (const c of NUMBERED_TILES) {
     for (let i = 1; i <= 9; i++) {
       for (let j = 0; j < 4; j++) {
         deck.push(c + i);
       }
     }
   }
-  for (const c of NAMED_CARDS) {
+  for (const c of NAMED_TILES) {
     for (let i = 1; i <= 4; i++) {
       deck.push(c);
     }
@@ -390,7 +415,7 @@ function countSequences(hand) {
     let n = getNumber(c);
     if (counter[n] == null) {
       counter[n] = {};
-      for (const type of NUMBERED_CARDS) {
+      for (const type of NUMBERED_TILES) {
         counter[n][type] = 0;
       }
     }
@@ -398,7 +423,7 @@ function countSequences(hand) {
   }
   let sequences = [];
   for (let i = 1; i <= 7; i++) {
-    for (const c of NUMBERED_CARDS) {
+    for (const c of NUMBERED_TILES) {
       let possible = true;
       for (let j = 0; j < 3; j++) {
         if (counter[i + j] == null) {

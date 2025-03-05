@@ -47,16 +47,17 @@ export class Sprite {
     }
   }
 
-  drawImage(ctx, x, y) {
+  drawImage(ctx, x, y, frameIndex) {
     if (!this.resource.isLoaded) {
       return;
     }
 
     x = x ?? this.position.x;
     y = y ?? this.position.y;
+    frameIndex = frameIndex ?? this.frame;
 
     // find the correct sprite sheet frame to use
-    const frame = this.frameMap.get(this.frame);
+    const frame = this.frameMap.get(frameIndex);
     if (frame == null) {
       console.log(`ERROR: INVALID FRAME '${this.frame}' ON ${this}`);
       return;
@@ -75,3 +76,25 @@ export class Sprite {
     );
   }
 }
+
+export class Draggable {
+  constructor({
+    sprite,
+    xOffsetMin,
+    yOffsetMin,
+    xOffsetMax,
+    yOffsetMax
+  }) {
+    this.sprite = sprite;
+    this.xOffsetMin = xOffsetMin;
+    this.yOffsetMin = yOffsetMin;
+    this.xOffsetMax = xOffsetMax;
+    this.yOffsetMax = yOffsetMax;
+  }
+
+  isWithinBoundingBox(x, y) {
+    return xOffsetMin < x && x < xOffsetMax &&
+      yOffsetMin < y && y < yOffsetMax;
+  }
+}
+
