@@ -1,5 +1,5 @@
 import "./Vector2";
-import { Vector2 } from "./Vector2";
+import { Vector2, BoundingBox } from "./Vector2";
 
 export class Sprite {
   /**
@@ -21,7 +21,6 @@ export class Sprite {
     vFrames,
     frame,
     scale,
-    position
   }) {
     this.resource = resource;
     this.frameSize = frameSize ?? new Vector2(16, 16);
@@ -30,7 +29,6 @@ export class Sprite {
     this.frame = frame ?? 0;
     this.frameMap = new Map();
     this.scale = scale ?? 1;
-    this.position = position ?? new Vector2();
     this.buildFrameMap();
   }
 
@@ -47,14 +45,10 @@ export class Sprite {
     }
   }
 
-  drawImage(ctx, x, y, frameIndex) {
+  drawImage(ctx, position, frameIndex = this.frame, scale = this.scale) {
     if (!this.resource.isLoaded) {
       return;
     }
-
-    x = x ?? this.position.x;
-    y = y ?? this.position.y;
-    frameIndex = frameIndex ?? this.frame;
 
     // find the correct sprite sheet frame to use
     const frame = this.frameMap.get(frameIndex);
@@ -69,32 +63,38 @@ export class Sprite {
       frame.y,
       this.frameSize.x,
       this.frameSize.y,
-      x,
-      y,
-      this.frameSize.x * this.scale,
-      this.frameSize.y * this.scale
+      position.x,
+      position.y,
+      this.frameSize.x * scale,
+      this.frameSize.y * scale
     );
   }
 }
 
-export class Draggable {
+
+export class DraggableSprite {
   constructor({
     sprite,
-    xOffsetMin,
-    yOffsetMin,
-    xOffsetMax,
-    yOffsetMax
+    frame,
+    scale,
+    position,
+    boundingBox
   }) {
     this.sprite = sprite;
-    this.xOffsetMin = xOffsetMin;
-    this.yOffsetMin = yOffsetMin;
-    this.xOffsetMax = xOffsetMax;
-    this.yOffsetMax = yOffsetMax;
+    this.frame = frame;
+    this.scale = scale;
+    this.position = position;
+    this.boundingBox = boundingBox;
+  }
+
+  draw(ctx) {
+    this.sprite.drawImage(ctx, new Vector2(), frame, scale);
   }
 
   isWithinBoundingBox(x, y) {
-    return xOffsetMin < x && x < xOffsetMax &&
-      yOffsetMin < y && y < yOffsetMax;
+    x -= this.position.x;
+    y -= this.position.y;
+    return this.boundingBox.isWithinBoundingBox(x, y);
   }
 }
 
