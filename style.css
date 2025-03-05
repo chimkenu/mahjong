@@ -4,18 +4,47 @@ html, body {
     overflow: hidden;
     image-rendering: pixelated;
     background: #5C3D26;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
 canvas {
-    padding-left: 0;
-    padding-right: 0;
-    margin-top: 5vh;
-    margin-bottom: 5vh;
-    margin-left: auto;
-    margin-right: auto;
+    padding: 0;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
     border: 2vh solid #4D331F;
     border-radius: 10px;
     display: block;
     height: 90vh;
 }
 
+.button-container {
+    display: flex;
+    justify-content: space-around;
+    width: 25vw;
+    height: 5vh;
+    padding-top: 0;
+    margin-bottom: 1vh;
+}
+
+button {
+    background-color: #4D331F;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #3b261a;
+}
+
+button:active {
+    background-color: #2a1b14;
+}
