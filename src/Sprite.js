@@ -88,13 +88,11 @@ export class DraggableSprite {
   }
 
   draw(ctx) {
-    this.sprite.drawImage(ctx, new Vector2(), frame, scale);
+    this.sprite.drawImage(ctx, this.position, this.frame, this.scale);
   }
 
   isWithinBoundingBox(x, y) {
-    x -= this.position.x;
-    y -= this.position.y;
-    return this.boundingBox.isWithinBoundingBox(x, y);
+    return this.boundingBox.isWithinBoundingBox(x, y, this.position);
   }
 }
 

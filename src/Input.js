@@ -1,67 +1,100 @@
-export const UP = "UP";
-export const DOWN = "DOWN";
-export const LEFT = "LEFT";
-export const RIGHT = "RIGHT";
+import { Vector2 } from './Vector2.js';
 
 export class Input {
-  constructor() {
-    this.heldDirections = [];
-    document.addEventListener("keydown", (event) => {
-      switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-          this.onMovePressed(UP);
-          break;
-        case "ArrowDown":
-        case "KeyS":
-          this.onMovePressed(DOWN);
-          break;
-        case "ArrowLeft":
-        case "KeyA":
-          this.onMovePressed(LEFT);
-          break;
-        case "ArrowRight":
-        case "KeyD":
-          this.onMovePressed(RIGHT);
-          break;
-      }
+  constructor({
+    canvas,
+    onDraw,
+    onDiscard,
+    onPong,
+    onMahjong,
+    draggables,
+  }) {
+    document.getElementById('draw-button').addEventListener('click', () => {
+      console.log('Draw button clicked');
+      onDraw();
     });
-    document.addEventListener("keyup", (event) => {
-      switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-          this.onMoveReleased(UP);
-          break;
-        case "ArrowDown":
-        case "KeyS":
-          this.onMoveReleased(DOWN);
-          break;
-        case "ArrowLeft":
-        case "KeyA":
-          this.onMoveReleased(LEFT);
-          break;
-        case "ArrowRight":
-        case "KeyD":
-          this.onMoveReleased(RIGHT);
-          break;
-      }
+
+    document.getElementById('discard-button').addEventListener('click', () => {
+      console.log('Discard button clicked');
+      onDiscard();
     });
-  }
 
-  onMovePressed(direction) {
-    if (!this.heldDirections.includes(direction)) {
-      this.heldDirections.unshift(direction);
+    document.getElementById('pong-button').addEventListener('click', () => {
+      console.log('Pong button clicked');
+      onPong();
+    });
+
+    document.getElementById('mahjong-button').addEventListener('click', () => {
+      console.log('Mahjong button clicked');
+      onMahjong();
+    });
+
+    this.draggables = draggables;
+    this.draggable = null;
+    this.isDragging = false;
+    this.getDragPosition = function(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+      return new Vector2(x, y);
     }
-  }
 
-  onMoveReleased(direction) {
-    const index = this.heldDirections.indexOf(direction);
-    if (index > -1) {
-      this.heldDirections.splice(index, 1);
+    this.onDragStart = function(dragPos) {
+      if (this.isDragging) {
+        return;
+      }
+      for (const draggable of this.draggables) {
+        if (draggable.isWithinBoundingBox(dragPos.x, dragPos.y)) {
+          this.draggable = draggable;
+          this.isDragging = true;
+          this.dragOffset = new Vector2(dragPos.x - draggable.position.x, dragPos.y - draggable.position.y);
+          break;
+        }
+      }
+      if (this.draggable != null) {
+        // move draggable to top of draggables
+        this.draggables.splice(this.draggables.indexOf(this.draggable), 1);
+        this.draggables.unshift(this.draggable);
+      }
     }
-  }
 
-  get direction() {
-    return this.heldDirections[0]; // nullable
+    this.onDragMove = function(dragPos) {
+      if (this.isDragging) {
+        this.draggable.position.x = dragPos.x - this.dragOffset.x;
+        this.draggable.position.y = dragPos.y - this.dragOffset.y;
+      }
+    }
+
+    this.onDragEnd = function() {
+      this.isDragging = false;
+      this.draggable = null;
+    }
+
+    // Handle drag start event
+    canvas.addEventListener('mousedown', (e) => {
+      this.onDragStart(this.getDragPosition(e));
+    });
+    canvas.addEventListener('touchstart', (e) => {
+      this.onDragStart(this.getDragPosition(e.touches[0]));
+    });
+
+    // Handle drag move event
+    canvas.addEventListener('mousemove', (e) => {
+      this.onDragMove(this.getDragPosition(e));
+      e.preventDefault();
+    });
+    canvas.addEventListener('touchmove', (e) => {
+      this.onDragMove(this.getDragPosition(e.touches[0]));
+      e.preventDefault();
+    });
+
+    // Handle drag end event
+    canvas.addEventListener('mouseup', () => {
+      this.onDragEnd();
+    });
+    canvas.addEventListener('touchend', () => {
+      this.onDragEnd();
+    });
   }
 }
+

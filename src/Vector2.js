@@ -44,8 +44,8 @@ export class BoundingBox {
     this.max = maxVec;
   }
 
-  isWithinBoundingBox(x, y) {
-    return this.min.x < x && x < this.max.x &&
-      this.min.y < y && y < this.max.y;
+  isWithinBoundingBox(x, y, position = new Vector2()) {
+    return position.x + this.min.x < x && x < position.x + this.max.x &&
+      position.y + this.min.y < y && y < position.y + this.max.y;
   }
 }

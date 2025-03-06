@@ -8,17 +8,16 @@
 
 import "./style.css";
 import { resources } from "./src/Resources.js";
-import { Sprite, Draggable } from "./src/Sprite.js";
-import { Vector2 } from "./src/Vector2.js";
+import { Sprite, DraggableSprite } from "./src/Sprite.js";
+import { Vector2, BoundingBox } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
-import { UP, DOWN, LEFT, RIGHT, Input } from "./src/Input.js";
-import { Grid } from "./src/Grid.js";
+import { Input } from "./src/Input.js";
 
 // CONSTANTS
 const MAX_PLAYERS = 4;
 const REAL_PLAYERS = [0];
 const NUMBERED_TILES = ['S', 'B', 'C'];
-const NAMED_TILES = ['N', 'S', 'E', 'W', 'W', 'G', 'R'];
+const NAMED_TILES = ['N', 'S', 'E', 'W', 'R', 'G', 'B'];
 const STARTING_HAND = 16;
 const WINNING_HANDS = [
   { // STANDARD WIN - 5 sets of 3 and 1 pair
@@ -31,20 +30,30 @@ const WINNING_HANDS = [
   }
 ];
 
-// CANVAS
+// CANVAS & SPRITES
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
-const sprites = [];
-const grid = new Grid({
-  xOffset: 1,
-  yOffset: 32 * 9,
-  cellSize: 19
-});
+const TILE_SPRITES = {
+  C1: 27, C2: 28, C3: 29,
+  C4: 30, C5: 31, C6: 32,
+  C7: 33, C8: 34, C9: 35,
+  S1: 36, S2: 37, S3: 38,
+  S4: 39, S5: 40, S6: 41,
+  S7: 42, S8: 43, S9: 44,
+  B1: 45, B2: 46, B3: 47,
+  B4: 48, B5: 49, B6: 50,
+  B7: 51, B8: 52, B9: 53,
+  N: 57, S: 55, E: 54, W: 56,
+  R: 60, G: 59, B: 58,
+};
+const tiles = [];
 
-sprites.push(new Sprite({
+ctx.imageSmoothingEnabled = false;
+
+const background = new Sprite({
   resource: resources.images.background,
   frameSize: new Vector2(320, 320),
-}));
+});
 
 const tileSprite = new Sprite({
   resource: resources.images.tiles,
@@ -60,32 +69,58 @@ const highlight = new Sprite({
   hFrames: 1,
   vFrames: 4,
   frame: 0,
-  position: new Vector2(grid.toGridCellX(0), grid.toGridCellY(0))
 });
 
-const input = new Input();
+function spawnTile(tile, position) {
+  const sprite = new DraggableSprite({
+    sprite: tileSprite,
+    frame: TILE_SPRITES[tile],
+    scale: 1,
+    position: position,
+    boundingBox: new BoundingBox({
+      minVec: new Vector2(9, 1),
+      maxVec: new Vector2(26, 28)
+    })
+  });
+  tiles.unshift(sprite);
+  return sprite;
+}
+
+// INPUTS
+let game; // the game to run
+
+new Input({
+  canvas: canvas,
+  onDraw: function() {
+    spawnTile('S1', new Vector2(0, 0));
+  },
+  onDiscard: function() {
+  },
+  onPong: function() {
+  },
+  onMahjong: function() {
+  },
+  draggables: tiles,
+});
 
 const render = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (const sprite of sprites) {
-    sprite.drawImage(ctx);
-  }
+  background.drawImage(ctx, new Vector2());
 
   for (let i = 0; i < 16; i++) {
-    tileSprite.drawImage(ctx, 9 + i * 18, i % 2, 20);
-    tileSprite.drawImage(ctx, i % 2, 32 + i * 12, 17);
-    tileSprite.drawImage(ctx, 32 * 9 + (i % 2), 32 + i * 12, 26);
+    tileSprite.drawImage(ctx, new Vector2(9 + i * 18, i % 2, 20));
+    tileSprite.drawImage(ctx, new Vector2(i % 2, 32 + i * 12, 17));
+    tileSprite.drawImage(ctx, new Vector2(32 * 9 + (i % 2), 32 + i * 12, 26));
   }
 
-  for (let i = 0; i < 16; i++) {
-    tileSprite.drawImage(ctx, 1 + i * 19, 32 * 9);
+  for (let i = tiles.length - 1; i >= 0; i--) {
+    tiles[i].draw(ctx);
   }
 
-  highlight.drawImage(ctx);
+  // highlight.drawImage(ctx);
 };
 
-let highlightDestination = highlight.position.clone();
+// let highlightDestination = highlight.position.clone();
 
 let count = 0;
 const update = () => {
@@ -93,50 +128,32 @@ const update = () => {
     highlight.frame = (highlight.frame + 1) % 2;
     count = 0;
   }
-  const distance = grid.lerpVectorTo(highlight.position, highlightDestination, 2.5);
-  if (distance == 0) {
-    tryMove();
-  }
-}
-
-function tryMove() {
-  let nextX = highlightDestination.x;
-  let nextY = highlightDestination.y;
-  switch (input.direction) {
-    case UP:
-      nextY -= grid.cellSize;
-      break;
-    case DOWN:
-      nextY += grid.cellSize;
-      break;
-    case LEFT:
-      nextX -= grid.cellSize;
-      break;
-    case RIGHT:
-      nextX += grid.cellSize;
-      break;
-  }
-  // TODO check if destination is valid
-  highlightDestination.x = nextX;
-  highlightDestination.y = nextY;
+  // const distance = Vector2.lerpVectorTo(highlight.position, highlightDestination, 2.5);
 }
 
 const gameLoop = new GameLoop(update, render);
 gameLoop.start();
 
-// INTERACTIONS
-canvas.onmousedown = function(event) {
-  event.preventDefault();
-  event.clientX;
-  event.clientY;
-  console.log(event);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // GAME LOOP
 async function runGame() {
-  const game = setup();
+  game = setup();
   let playerIndex = 0;
   draw(game, playerIndex);
   while (true) {
@@ -227,8 +244,10 @@ function draw(game, player) {
   if (game.players[player] == null) {
     game.players[player] = [];
   }
-  game.players[player].push(game.deck.pop());
-  console.log(`drew a ${game.players[player].at(-1)}`);
+  const tile = game.deck.pop();
+  game.players[player].push(tile);
+  console.log(`drew a ${tile}`);
+  return tile;
 }
 
 function decide(game, player) {
